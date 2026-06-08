@@ -1,6 +1,6 @@
 package com.vinyl.app.ui.navigation
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -27,7 +27,7 @@ fun VinylNavGraph(
     navController: NavHostController,
     startDestination: String = Screen.Idle.route
 ) {
-    val activity = LocalContext.current as Activity
+    val activity = LocalContext.current as ComponentActivity
     val viewModel = hiltViewModel<com.vinyl.app.ui.nowplaying.NowPlayingViewModel>(activity)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
