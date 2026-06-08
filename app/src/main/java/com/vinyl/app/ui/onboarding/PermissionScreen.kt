@@ -18,15 +18,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import com.vinyl.app.ui.theme.*
 import kotlinx.coroutines.delay
 
 fun isNotificationListenerEnabled(context: Context): Boolean {
-    val flat = Settings.Secure.getString(
-        context.contentResolver,
-        "enabled_notification_listeners"
-    ) ?: ""
-    return flat.contains(context.packageName)
+    return try {
+        val packages = NotificationManagerCompat.getEnabledListenerPackages(context)
+        packages.contains(context.packageName)
+    } catch (_: Exception) {
+        false
+    }
 }
 
 @Composable
@@ -35,12 +37,17 @@ fun PermissionScreen(
 ) {
     val context = LocalContext.current
 
+    var showContinue by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
+        var attempts = 0
         while (true) {
             if (isNotificationListenerEnabled(context)) {
                 onPermissionGranted()
                 break
             }
+            attempts++
+            if (attempts >= 30) showContinue = true
             delay(1000)
         }
     }
@@ -102,30 +109,25 @@ fun PermissionScreen(
                         )
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AccentAmber,
                     contentColor = Background
                 )
             ) {
-                Text(
-                    text = "Enable Access",
-                    style = VinylTypography.bodyLarge
-                )
+                Text("Enable Access", style = VinylTypography.bodyLarge)
             }
 
             Text(
-                text = "If the page above is blocked, open App Info below\nthen tap \"Notification Access\" → enable Vinyl.",
+                text = "If that page is blocked, use App Info below →\nfind \"Notification Access\" → toggle Vinyl on.",
                 style = VinylTypography.bodySmall,
                 color = OnSurfaceSubtle,
                 textAlign = TextAlign.Center,
                 lineHeight = VinylTypography.bodySmall.lineHeight
             )
 
-            Button(
+            OutlinedButton(
                 onClick = {
                     context.startActivity(
                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -135,15 +137,32 @@ fun PermissionScreen(
                     )
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = OnSurfaceMuted.copy(alpha = 0.15f),
-                    contentColor = OnSurface
-                )
+                shape = RoundedCornerShape(14.dp)
             ) {
+                Text("Open App Info", style = VinylTypography.bodyMedium)
+            }
+
+            if (showContinue) {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { onPermissionGranted() },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = OnSurfaceMuted.copy(alpha = 0.2f),
+                        contentColor = OnSurface
+                    )
+                ) {
+                    Text(
+                        "Continue Anyway",
+                        style = VinylTypography.bodyMedium
+                    )
+                }
                 Text(
-                    text = "Open App Info",
-                    style = VinylTypography.bodyMedium
+                    text = "App may not detect tracks until access is granted.",
+                    style = VinylTypography.bodySmall,
+                    color = OnSurfaceSubtle,
+                    textAlign = TextAlign.Center
                 )
             }
         }
