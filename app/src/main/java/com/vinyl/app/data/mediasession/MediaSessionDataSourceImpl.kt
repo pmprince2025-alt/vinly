@@ -87,10 +87,11 @@ class MediaSessionDataSourceImpl @Inject constructor(
         val componentName = ComponentName(context.packageName, "com.vinyl.app.data.mediasession.VinylNotificationListenerService")
         val controllers = manager.getActiveSessions(componentName)
         controllers.forEach { platformController ->
-            val compatController = MediaControllerCompat(context, platformController)
-            val token = platformController.sessionToken ?: return@forEach
-            if (sessions.containsKey(token)) return@forEach
-            registerSession(token, compatController)
+            val rawToken = platformController.sessionToken ?: return@forEach
+            if (sessions.containsKey(rawToken)) return@forEach
+            val compatToken = MediaSessionCompat.Token.fromToken(rawToken)
+            val compatController = MediaControllerCompat(context, compatToken)
+            registerSession(rawToken, compatController)
         }
     }
 
