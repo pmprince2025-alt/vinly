@@ -1,25 +1,55 @@
 package com.vinyl.app.ui.onboarding
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vinyl.app.ui.theme.*
+import kotlinx.coroutines.delay
+
+fun isNotificationListenerEnabled(context: Context): Boolean {
+    val flat = Settings.Secure.getString(
+        context.contentResolver,
+        "enabled_notification_listeners"
+    ) ?: ""
+    return flat.contains(context.packageName)
+}
 
 @Composable
 fun PermissionScreen(
     onPermissionGranted: () -> Unit
 ) {
     val context = LocalContext.current
+
+    // Poll for permission — handles both initial state and return from Settings
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (isNotificationListenerEnabled(context)) {
+                onPermissionGranted()
+                break
+            }
+            delay(1000)
+        }
+    }
+
+    val requestNotificationPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* no-op; NLS detection handles navigation */ }
 
     Box(
         modifier = Modifier
@@ -53,6 +83,9 @@ fun PermissionScreen(
 
             Button(
                 onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                     context.startActivity(
                         Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                     )
@@ -60,7 +93,7 @@ fun PermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AccentAmber,
                     contentColor = Background
