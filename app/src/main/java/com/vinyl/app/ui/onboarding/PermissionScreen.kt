@@ -19,8 +19,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vinyl.app.ui.theme.*
-import kotlinx.coroutines.delay
 
 fun isNotificationListenerEnabled(context: Context): Boolean {
     return try {
@@ -36,19 +38,32 @@ fun PermissionScreen(
     onPermissionGranted: () -> Unit
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    var showContinue by remember { mutableStateOf(false) }
+    var nlsGranted by remember { mutableStateOf(false) }
 
+    // Check immediately after composition
     LaunchedEffect(Unit) {
-        var attempts = 0
-        while (true) {
-            if (isNotificationListenerEnabled(context)) {
-                onPermissionGranted()
-                break
+        if (isNotificationListenerEnabled(context)) {
+            nlsGranted = true
+        }
+    }
+
+    // Re-check each time the activity resumes (e.g., returning from Settings)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && isNotificationListenerEnabled(context)) {
+                nlsGranted = true
             }
-            attempts++
-            if (attempts >= 30) showContinue = true
-            delay(1000)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Navigate when permission is detected
+    LaunchedEffect(nlsGranted) {
+        if (nlsGranted) {
+            onPermissionGranted()
         }
     }
 
@@ -142,29 +157,27 @@ fun PermissionScreen(
                 Text("Open App Info", style = VinylTypography.bodyMedium)
             }
 
-            if (showContinue) {
-                Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = { onPermissionGranted() },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = OnSurfaceMuted.copy(alpha = 0.2f),
-                        contentColor = OnSurface
-                    )
-                ) {
-                    Text(
-                        "Continue Anyway",
-                        style = VinylTypography.bodyMedium
-                    )
-                }
-                Text(
-                    text = "App may not detect tracks until access is granted.",
-                    style = VinylTypography.bodySmall,
-                    color = OnSurfaceSubtle,
-                    textAlign = TextAlign.Center
+            Spacer(Modifier.height(8.dp))
+
+            Button(
+                onClick = { onPermissionGranted() },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = OnSurfaceMuted.copy(alpha = 0.2f),
+                    contentColor = OnSurface
                 )
+            ) {
+                Text("Continue Anyway", style = VinylTypography.bodyMedium)
             }
+
+            Text(
+                text = "The app may not detect tracks without proper access,\nbut you can give it a try.",
+                style = VinylTypography.bodySmall,
+                color = OnSurfaceSubtle,
+                textAlign = TextAlign.Center,
+                lineHeight = VinylTypography.bodySmall.lineHeight
+            )
         }
     }
 }
