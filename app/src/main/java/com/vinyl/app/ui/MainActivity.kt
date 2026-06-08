@@ -9,7 +9,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
-import com.vinyl.app.service.InAppUpdateManager
 import com.vinyl.app.ui.navigation.VinylNavGraph
 import com.vinyl.app.ui.theme.VinylTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,13 +16,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var inAppUpdateManager: InAppUpdateManager
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        inAppUpdateManager = InAppUpdateManager(this)
-        inAppUpdateManager.checkForUpdate()
 
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -35,13 +29,6 @@ class MainActivity : ComponentActivity() {
                     VinylNavGraph(navController = navController)
                 }
             }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (::inAppUpdateManager.isInitialized) {
-            inAppUpdateManager.onResume()
         }
     }
 }
