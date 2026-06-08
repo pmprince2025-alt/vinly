@@ -1,7 +1,10 @@
 package com.vinyl.app.data.mediasession
 
+import android.content.ComponentName
 import android.content.Context
+import android.media.session.MediaController
 import android.media.session.MediaSession
+import android.media.session.MediaSessionManager
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -47,28 +50,7 @@ class MediaSessionDataSourceImpl @Inject constructor(
         val compatToken = MediaSessionCompat.Token.fromToken(token)
         val controller = MediaControllerCompat(context, compatToken)
 
-        val callback = object : MediaControllerCompat.Callback() {
-            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                if (controller === activeController) {
-                    metadata?.let { updateTrack(it) }
-                }
-            }
-
-            override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-                if (controller === activeController) {
-                    state?.let { updatePlaybackState(it) }
-                }
-            }
-
-            override fun onSessionDestroyed() {
-                cleanupSession(token)
-            }
-        }
-
-        controller.registerCallback(callback)
-        sessions[token] = SessionEntry(controller, callback)
-
-        setActiveSession(token, controller)
+        registerSession(token, controller)
     }
 
     fun onNotificationRemoved(sbn: StatusBarNotification) {
@@ -93,10 +75,48 @@ class MediaSessionDataSourceImpl @Inject constructor(
 
     fun onListenerConnected() {
         isConnected.value = true
+        scanActiveSessions()
     }
 
     fun onListenerDisconnected() {
         isConnected.value = false
+    }
+
+    private fun scanActiveSessions() {
+        val manager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager ?: return
+        val componentName = ComponentName(context.packageName, "com.vinyl.app.data.mediasession.VinylNotificationListenerService")
+        val controllers = manager.getActiveSessions(componentName)
+        controllers.forEach { platformController ->
+            val compatController = MediaControllerCompat(context, platformController)
+            val token = platformController.sessionToken ?: return@forEach
+            if (sessions.containsKey(token)) return@forEach
+            registerSession(token, compatController)
+        }
+    }
+
+    private fun registerSession(token: MediaSession.Token, controller: MediaControllerCompat) {
+        val callback = object : MediaControllerCompat.Callback() {
+            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                if (controller === activeController) {
+                    metadata?.let { updateTrack(it) }
+                }
+            }
+
+            override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+                if (controller === activeController) {
+                    state?.let { updatePlaybackState(it) }
+                }
+            }
+
+            override fun onSessionDestroyed() {
+                cleanupSession(token)
+            }
+        }
+
+        controller.registerCallback(callback)
+        sessions[token] = SessionEntry(controller, callback)
+
+        setActiveSession(token, controller)
     }
 
     private fun setActiveSession(token: MediaSession.Token, controller: MediaControllerCompat) {
