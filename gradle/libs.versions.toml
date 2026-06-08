@@ -51,6 +51,9 @@ androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", versi
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
+# Play In-App Updates
+play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version = "2.1.0" }
+
 # Coroutines
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
