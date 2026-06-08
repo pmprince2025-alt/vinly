@@ -7,12 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vinyl.app.domain.model.VinylStyle
@@ -81,9 +79,6 @@ fun VinylDisc(
                 center.y + labelRadius
             )
             val artBitmap = albumArt.asImageBitmap()
-            val artPaint = Paint().apply {
-                isAntiAlias = true
-            }
             drawContext.canvas.save()
             drawContext.canvas.clipPath(
                 Path().apply { addOval(labelRect) },
