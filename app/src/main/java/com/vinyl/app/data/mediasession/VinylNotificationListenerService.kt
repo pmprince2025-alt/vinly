@@ -13,6 +13,12 @@ class VinylNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+
+        // Scan existing notifications (handles the case where music was already playing)
+        for (sbn in activeNotifications) {
+            dataSource.onNotificationPosted(sbn)
+        }
+
         dataSource.onListenerConnected()
     }
 
