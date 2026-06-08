@@ -3,6 +3,7 @@ package com.vinyl.app.ui.idle
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -14,11 +15,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vinyl.app.ui.nowplaying.components.VinylDisc
 import com.vinyl.app.ui.theme.Background
+import com.vinyl.app.ui.theme.OnSurfaceMuted
 import com.vinyl.app.ui.theme.OnSurfaceSubtle
 import com.vinyl.app.ui.theme.VinylTypography
 
 @Composable
-fun IdleScreen() {
+fun IdleScreen(
+    onDemoClick: () -> Unit = {}
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "idle")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -53,7 +57,6 @@ fun IdleScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Ghost vinyl
             Box(
                 modifier = Modifier
                     .size(discSize)
@@ -65,7 +68,6 @@ fun IdleScreen() {
                     discSize = discSize
                 )
 
-                // Pulsing glow
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
                     val radius = size.minDimension * 0.15f
@@ -93,6 +95,17 @@ fun IdleScreen() {
                 style = VinylTypography.bodyMedium,
                 color = OnSurfaceSubtle,
                 textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            Text(
+                text = "Demo",
+                style = VinylTypography.bodySmall,
+                color = OnSurfaceMuted.copy(alpha = 0.4f),
+                modifier = Modifier
+                    .clickable(onClick = onDemoClick)
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
             )
         }
     }

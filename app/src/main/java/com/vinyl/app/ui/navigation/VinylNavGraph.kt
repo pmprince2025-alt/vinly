@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.vinyl.app.ui.idle.IdleScreen
+import com.vinyl.app.ui.nowplaying.DemoPlayingScreen
 import com.vinyl.app.ui.nowplaying.NowPlayingScreen
 import com.vinyl.app.ui.nowplaying.NowPlayingUiState
 import com.vinyl.app.ui.onboarding.PermissionScreen
@@ -19,6 +20,7 @@ sealed class Screen(val route: String) {
     object Permission : Screen("permission")
     object Idle : Screen("idle")
     object NowPlaying : Screen("nowPlaying")
+    object Demo : Screen("demo")
     object Settings : Screen("settings")
 }
 
@@ -41,7 +43,8 @@ fun VinylNavGraph(
                 }
             }
             is NowPlayingUiState.Idle -> {
-                if (navController.currentDestination?.route != Screen.Idle.route) {
+                val currentRoute = navController.currentDestination?.route
+                if (currentRoute !in listOf(Screen.Idle.route, Screen.Demo.route)) {
                     navController.navigate(Screen.Idle.route) {
                         popUpTo(Screen.NowPlaying.route) { inclusive = true }
                     }
@@ -74,7 +77,17 @@ fun VinylNavGraph(
         }
 
         composable(Screen.Idle.route) {
-            IdleScreen()
+            IdleScreen(
+                onDemoClick = {
+                    navController.navigate(Screen.Demo.route)
+                }
+            )
+        }
+
+        composable(Screen.Demo.route) {
+            DemoPlayingScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.NowPlaying.route) {

@@ -195,7 +195,7 @@ private fun PlayingContent(
     }
 }
 
-private fun formatDuration(millis: Long): String {
+fun formatDuration(millis: Long): String {
     val totalSec = millis / 1000
     val min = totalSec / 60
     val sec = totalSec % 60
