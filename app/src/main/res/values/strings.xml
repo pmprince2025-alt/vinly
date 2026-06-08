@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vinyl</string>
+    <string name="notification_listener_description">Vinyl reads music playback metadata to visualize your currently playing track.</string>
+    <string name="foreground_channel_name">Vinyl Service</string>
+    <string name="foreground_channel_description">Keeps Vinyl active to detect music playback</string>
+    <string name="foreground_notification_text">Listening for music playback</string>
+</resources>

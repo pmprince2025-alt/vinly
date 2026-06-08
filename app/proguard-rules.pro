@@ -1,0 +1,4 @@
+-keepattributes *Annotation*
+-keep class com.vinyl.app.data.model.** { *; }
+-keep class com.vinyl.app.domain.model.** { *; }
+-keep class * extends com.google.dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
