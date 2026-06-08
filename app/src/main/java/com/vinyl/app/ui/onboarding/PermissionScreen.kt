@@ -10,7 +10,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,11 +89,13 @@ fun PermissionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background),
-        contentAlignment = Alignment.Center
+            .background(Background)
     ) {
         Column(
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -103,14 +107,16 @@ fun PermissionScreen(
                 lineHeight = VinylTypography.headlineLarge.lineHeight
             )
 
+            Spacer(Modifier.height(8.dp))
+
             Text(
-                text = "Vinyl transforms your music into a cinematic turntable experience.\n\nIt reads what's playing from your music apps and displays it as a beautiful, spinning vinyl record.",
+                text = "Vinyl reads what's playing from your music apps\nand displays it as a beautiful, spinning vinyl record.",
                 style = VinylTypography.bodyMedium,
                 color = OnSurfaceMuted,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = {
@@ -135,7 +141,7 @@ fun PermissionScreen(
             }
 
             Text(
-                text = "If that page is blocked, use App Info below →\nfind \"Notification Access\" → toggle Vinyl on.",
+                text = "If the settings page is unavailable, tap \"Open App Info\"\nand enable \"Notification Access\" there.",
                 style = VinylTypography.bodySmall,
                 color = OnSurfaceSubtle,
                 textAlign = TextAlign.Center,
@@ -157,7 +163,7 @@ fun PermissionScreen(
                 Text("Open App Info", style = VinylTypography.bodyMedium)
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = { onPermissionGranted() },
@@ -170,14 +176,6 @@ fun PermissionScreen(
             ) {
                 Text("Continue Anyway", style = VinylTypography.bodyMedium)
             }
-
-            Text(
-                text = "The app may not detect tracks without proper access,\nbut you can give it a try.",
-                style = VinylTypography.bodySmall,
-                color = OnSurfaceSubtle,
-                textAlign = TextAlign.Center,
-                lineHeight = VinylTypography.bodySmall.lineHeight
-            )
         }
     }
 }

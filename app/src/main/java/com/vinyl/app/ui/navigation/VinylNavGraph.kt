@@ -20,7 +20,7 @@ sealed class Screen(val route: String) {
 @Composable
 fun VinylNavGraph(
     navController: NavHostController,
-    startDestination: String = Screen.Permission.route
+    startDestination: String = Screen.Idle.route
 ) {
     NavHost(
         navController = navController,
