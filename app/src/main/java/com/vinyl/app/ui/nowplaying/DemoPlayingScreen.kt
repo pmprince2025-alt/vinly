@@ -109,7 +109,7 @@ fun DemoPlayingScreen(
                     albumArt = null,
                     rotation = rotation,
                     discSize = discSize,
-                    style = VinylStyle.CLASSIC_BLACK
+                    style = VinylStyle.CLASSIC
                 )
                 Tonearm(
                     angle = tonearmAngle,
