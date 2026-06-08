@@ -39,6 +39,31 @@ class MediaSessionDataSourceImpl @Inject constructor(
     private var activeController: MediaControllerCompat? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var pollingJob: Job? = null
+    private var directPollJob: Job? = null
+
+    init {
+        // Poll directly from app context — may work without NLS on some devices
+        directPollJob = scope.launch {
+            while (isActive) {
+                try {
+                    val manager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager ?: continue
+                    val controllers = manager.getActiveSessions(null)
+                    controllers.forEach { platformController ->
+                        val rawToken = platformController.sessionToken ?: return@forEach
+                        if (sessions.containsKey(rawToken)) return@forEach
+                        val compatToken = MediaSessionCompat.Token.fromToken(rawToken)
+                        val compatController = MediaControllerCompat(context, compatToken)
+                        registerSession(rawToken, compatController)
+                    }
+                } catch (_: SecurityException) {
+                    // Direct session query not permitted on this device
+                } catch (_: Exception) {
+                    // Silently ignore other failures
+                }
+                delay(2000)
+            }
+        }
+    }
 
     fun onNotificationPosted(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras ?: return
@@ -210,6 +235,7 @@ class MediaSessionDataSourceImpl @Inject constructor(
     override fun release() {
         scope.cancel()
         pollingJob?.cancel()
+        directPollJob?.cancel()
         sessions.values.forEach { entry ->
             entry.controller.unregisterCallback(entry.callback)
         }
