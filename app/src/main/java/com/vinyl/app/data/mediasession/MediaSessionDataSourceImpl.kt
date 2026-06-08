@@ -4,10 +4,9 @@ import android.content.Context
 import android.media.session.MediaSession
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
-import androidx.core.os.getParcelable
-import androidx.media.MediaMetadataCompat
-import androidx.media.session.MediaControllerCompat
-import androidx.media.session.PlaybackStateCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import com.vinyl.app.data.model.TrackDataModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
@@ -34,9 +33,8 @@ class MediaSessionDataSourceImpl @Inject constructor(
 
     fun onNotificationPosted(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras ?: return
-        val token = extras.getParcelable<MediaSession.Token>(
-            NotificationCompat.EXTRA_MEDIA_SESSION
-        ) ?: return
+        val rawToken = extras.getParcelable(NotificationCompat.EXTRA_MEDIA_SESSION) as? MediaSession.Token ?: return
+        val token = rawToken
 
         if (sessions.containsKey(token)) return
 
@@ -66,9 +64,8 @@ class MediaSessionDataSourceImpl @Inject constructor(
 
     fun onNotificationRemoved(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras ?: return
-        val token = extras.getParcelable<MediaSession.Token>(
-            NotificationCompat.EXTRA_MEDIA_SESSION
-        ) ?: return
+        val rawToken = extras.getParcelable(NotificationCompat.EXTRA_MEDIA_SESSION) as? MediaSession.Token ?: return
+        val token = rawToken
 
         sessions.remove(token)?.unregisterCallback(null)
         if (activeToken == token) {

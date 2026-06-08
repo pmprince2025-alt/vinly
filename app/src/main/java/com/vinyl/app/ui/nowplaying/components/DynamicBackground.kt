@@ -2,6 +2,7 @@ package com.vinyl.app.ui.nowplaying.components
 
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -34,7 +35,7 @@ fun DynamicBackground(
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedContent(
             targetState = blurredBitmap,
-            transitionSpec = { fadeIn(500) togetherWith fadeOut(500) },
+            transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
             label = "bg_transition"
         ) { bitmap ->
             if (bitmap != null) {

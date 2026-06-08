@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
@@ -89,12 +91,11 @@ fun VinylDisc(
             )
             drawImage(
                 image = artBitmap,
-                dstSize = Size(labelRadius * 2, labelRadius * 2),
-                dstOffset = Offset(
-                    center.x - labelRadius,
-                    center.y - labelRadius
-                ),
-                paint = artPaint
+                dstSize = IntSize((labelRadius * 2).toInt(), (labelRadius * 2).toInt()),
+                dstOffset = IntOffset(
+                    (center.x - labelRadius).toInt(),
+                    (center.y - labelRadius).toInt()
+                )
             )
             drawContext.canvas.restore()
         } else {

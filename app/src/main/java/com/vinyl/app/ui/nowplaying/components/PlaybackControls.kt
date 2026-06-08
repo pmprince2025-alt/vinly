@@ -2,7 +2,9 @@ package com.vinyl.app.ui.nowplaying.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -116,7 +118,7 @@ private fun PlayPauseButton(
     ) {
         AnimatedContent(
             targetState = isPlaying,
-            transitionSpec = { crossfade(tween(200)) },
+            transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(200)) },
             label = "play_pause"
         ) { playing ->
             Icon(

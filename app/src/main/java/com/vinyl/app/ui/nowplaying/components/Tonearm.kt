@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
 import com.vinyl.app.ui.theme.LocalVinylTheme
 
@@ -32,58 +33,58 @@ fun Tonearm(
         val counterweightRadius = 10.dp.toPx()
         val needleRadius = 3.dp.toPx()
 
+        val pivot = Offset(pivotX, pivotY)
+
         // Shadow
         drawContext.canvas.save()
         drawContext.canvas.translate(2.dp.toPx(), 2.dp.toPx())
-        drawContext.canvas.rotate(angle, pivotX, pivotY)
-        drawRoundRect(
-            color = Color.Black.copy(alpha = 0.2f),
-            topLeft = Offset(pivotX - armWidth / 2, pivotY),
-            size = androidx.compose.ui.geometry.Size(armWidth, armLength),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 2)
-        )
+        rotate(angle, pivot) {
+            drawRoundRect(
+                color = Color.Black.copy(alpha = 0.2f),
+                topLeft = Offset(pivotX - armWidth / 2, pivotY),
+                size = androidx.compose.ui.geometry.Size(armWidth, armLength),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 2)
+            )
+        }
         drawContext.canvas.restore()
 
         // Main arm
-        drawContext.canvas.save()
-        drawContext.canvas.rotate(angle, pivotX, pivotY)
+        rotate(angle, pivot) {
+            drawRoundRect(
+                color = theme.tonearmBody,
+                topLeft = Offset(pivotX - armWidth / 2, pivotY),
+                size = androidx.compose.ui.geometry.Size(armWidth, armLength),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 2)
+            )
 
-        drawRoundRect(
-            color = theme.tonearmBody,
-            topLeft = Offset(pivotX - armWidth / 2, pivotY),
-            size = androidx.compose.ui.geometry.Size(armWidth, armLength),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 2)
-        )
+            drawRoundRect(
+                color = theme.tonearmHighlight.copy(alpha = 0.4f),
+                topLeft = Offset(pivotX - armWidth / 4, pivotY),
+                size = androidx.compose.ui.geometry.Size(armWidth / 2, armLength),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 4)
+            )
 
-        drawRoundRect(
-            color = theme.tonearmHighlight.copy(alpha = 0.4f),
-            topLeft = Offset(pivotX - armWidth / 4, pivotY),
-            size = androidx.compose.ui.geometry.Size(armWidth / 2, armLength),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(armWidth / 4)
-        )
+            drawCircle(
+                color = theme.tonearmBody,
+                radius = counterweightRadius,
+                center = Offset(pivotX, pivotY)
+            )
 
-        drawCircle(
-            color = theme.tonearmBody,
-            radius = counterweightRadius,
-            center = Offset(pivotX, pivotY)
-        )
+            val cartridgeX = pivotX - cartridgeWidth / 2
+            val cartridgeY = pivotY + armLength - cartridgeHeight / 2
+            drawRoundRect(
+                color = theme.tonearmBody,
+                topLeft = Offset(cartridgeX, cartridgeY),
+                size = androidx.compose.ui.geometry.Size(cartridgeWidth, cartridgeHeight),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+            )
 
-        val cartridgeX = pivotX - cartridgeWidth / 2
-        val cartridgeY = pivotY + armLength - cartridgeHeight / 2
-        drawRoundRect(
-            color = theme.tonearmBody,
-            topLeft = Offset(cartridgeX, cartridgeY),
-            size = androidx.compose.ui.geometry.Size(cartridgeWidth, cartridgeHeight),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
-        )
-
-        drawCircle(
-            color = theme.tonearmHighlight,
-            radius = needleRadius,
-            center = Offset(pivotX, pivotY + armLength)
-        )
-
-        drawContext.canvas.restore()
+            drawCircle(
+                color = theme.tonearmHighlight,
+                radius = needleRadius,
+                center = Offset(pivotX, pivotY + armLength)
+            )
+        }
     }
 }
 

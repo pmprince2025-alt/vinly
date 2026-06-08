@@ -1,6 +1,7 @@
 package com.vinyl.app.ui.nowplaying.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,8 +29,8 @@ fun TrackInfo(
         AnimatedContent(
             targetState = title,
             transitionSpec = {
-                (slideInVertically { it / 4 } + fadeIn(250)) togetherWith
-                        fadeOut(150)
+                (slideInVertically { it / 4 } + fadeIn(tween(250))) togetherWith
+                        fadeOut(tween(150))
             },
             label = "title_transition"
         ) { currentTitle ->
@@ -57,8 +58,8 @@ fun TrackInfo(
         AnimatedContent(
             targetState = artist,
             transitionSpec = {
-                (slideInVertically { it / 4 } + fadeIn(250)) togetherWith
-                        fadeOut(150)
+                (slideInVertically { it / 4 } + fadeIn(tween(250))) togetherWith
+                        fadeOut(tween(150))
             },
             label = "artist_transition"
         ) { currentArtist ->
@@ -76,8 +77,8 @@ fun TrackInfo(
         AnimatedContent(
             targetState = album,
             transitionSpec = {
-                (slideInVertically { it / 4 } + fadeIn(250)) togetherWith
-                        fadeOut(150)
+                (slideInVertically { it / 4 } + fadeIn(tween(250))) togetherWith
+                        fadeOut(tween(150))
             },
             label = "album_transition"
         ) { currentAlbum ->
