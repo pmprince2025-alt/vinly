@@ -6,6 +6,7 @@ import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.vinyl.app.data.model.TrackDataModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,12 @@ class MediaSessionDataSourceImpl @Inject constructor(
     override val playbackState = MutableStateFlow(PlaybackStateDataModel())
     override val isConnected = MutableStateFlow(false)
 
-    private val sessions = ConcurrentHashMap<MediaSession.Token, MediaControllerCompat>()
+    private data class SessionEntry(
+        val controller: MediaControllerCompat,
+        val callback: MediaControllerCompat.Callback
+    )
+
+    private val sessions = ConcurrentHashMap<MediaSession.Token, SessionEntry>()
     private var activeToken: MediaSession.Token? = null
     private var activeController: MediaControllerCompat? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -38,10 +44,10 @@ class MediaSessionDataSourceImpl @Inject constructor(
 
         if (sessions.containsKey(token)) return
 
-        val controller = MediaControllerCompat(context, token)
-        sessions[token] = controller
+        val compatToken = MediaSessionCompat.Token.fromToken(token)
+        val controller = MediaControllerCompat(context, compatToken)
 
-        controller.registerCallback(object : MediaControllerCompat.Callback() {
+        val callback = object : MediaControllerCompat.Callback() {
             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
                 if (controller === activeController) {
                     metadata?.let { updateTrack(it) }
@@ -57,7 +63,10 @@ class MediaSessionDataSourceImpl @Inject constructor(
             override fun onSessionDestroyed() {
                 cleanupSession(token)
             }
-        })
+        }
+
+        controller.registerCallback(callback)
+        sessions[token] = SessionEntry(controller, callback)
 
         setActiveSession(token, controller)
     }
@@ -67,11 +76,13 @@ class MediaSessionDataSourceImpl @Inject constructor(
         val rawToken = extras.getParcelable(NotificationCompat.EXTRA_MEDIA_SESSION) as? MediaSession.Token ?: return
         val token = rawToken
 
-        sessions.remove(token)?.unregisterCallback(null)
+        sessions.remove(token)?.let { entry ->
+            entry.controller.unregisterCallback(entry.callback)
+        }
         if (activeToken == token) {
             activeToken = null
             activeController = null
-            sessions.keys.lastOrNull()?.let { setActiveSession(it, sessions[it]!!) }
+            sessions.keys.lastOrNull()?.let { setActiveSession(it, sessions[it]!!.controller) }
             if (sessions.isEmpty()) {
                 currentTrack.value = null
                 playbackState.value = PlaybackStateDataModel(status = PlaybackStatus.NONE)
@@ -147,12 +158,14 @@ class MediaSessionDataSourceImpl @Inject constructor(
     }
 
     private fun cleanupSession(token: MediaSession.Token) {
-        sessions.remove(token)
+        sessions.remove(token)?.let { entry ->
+            entry.controller.unregisterCallback(entry.callback)
+        }
         if (activeToken == token) {
             activeToken = null
             activeController = null
             sessions.keys.lastOrNull()?.let {
-                sessions[it]?.let { ctrl -> setActiveSession(it, ctrl) }
+                sessions[it]?.let { entry -> setActiveSession(it, entry.controller) }
             } ?: run {
                 currentTrack.value = null
                 playbackState.value = PlaybackStateDataModel(status = PlaybackStatus.NONE)
@@ -176,7 +189,9 @@ class MediaSessionDataSourceImpl @Inject constructor(
     override fun release() {
         scope.cancel()
         pollingJob?.cancel()
-        sessions.values.forEach { it.unregisterCallback(null) }
+        sessions.values.forEach { entry ->
+            entry.controller.unregisterCallback(entry.callback)
+        }
         sessions.clear()
         activeToken = null
         activeController = null
